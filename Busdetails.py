@@ -116,28 +116,39 @@ try:
         driver.get(url)
         scroll_down_all(driver, pause_sec=1) 
         time.sleep(5);
-        # Wait for the search results to load
-#         no_results_element = WebDriverWait(driver, 10).until(
-#             EC.visibility_of_element_located((By.XPATH, "//div[@class='oops-wrapper']"))
-#         )
-#         print("No buses found for the given route.")
-# except TimeoutException:
-        
-        WebDriverWait(driver, 100).until(
-            EC.presence_of_element_located((By.CLASS_NAME, "bus-items"))
-        )
-        filters_section = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CLASS_NAME, "details"))
-        )
-        # Find all filter options
-        deptime_element = filters_section.find_elements(By.XPATH, "//ul[contains(@class, 'dept-time')]//li")
-        # Extract filter names
-        deptime_filters = [filter_element.text.strip() for filter_element in deptime_element]
-        # tile = driver.find_elements(By.CLASS_NAME, "D136_h1")[0]._parent.title
         tile=Route_Name
-        bus_services = driver.find_elements(By.CLASS_NAME, "bus-item")
-        Exract_dus_details(bus_services)
-        driver.quit()
+        try:
+            Govt_elements = driver.find_elements(By.XPATH, "//div[contains(@class, 'group-data') and contains(@class, 'clearfix')]")
+            if Govt_elements:
+                print(f"Found {len(Govt_elements)} Govt Buses.")
+            # Iterate over the elements and perform actions
+                for element in Govt_elements:
+                    print(element.text)  # Print the text content of each element
+                view_buses_button = WebDriverWait(driver, 50).until(
+                EC.presence_of_all_elements_located((By.XPATH, "//div[contains(@class, 'button') and contains(text(), 'View Buses')]"))
+                )
+                for button in view_buses_button:
+                    driver.execute_script("arguments[0].scrollIntoView(true);", button)
+                    driver.execute_script("arguments[0].click();", button)
+                    
+                time.sleep(5)
+            else:
+                print("Govt buses not found.")
+        except TimeoutException:
+            print("Govt elements not found within the timeout period.")
+        try:
+            scroll_down_all(driver, pause_sec=1) 
+            WebDriverWait(driver, 100).until(
+                    EC.presence_of_element_located((By.CLASS_NAME, "bus-items"))
+                )
+          
+            bus_services = driver.find_elements(By.CLASS_NAME, "bus-item")
+            Exract_dus_details(bus_services)
+            driver.quit()
+        except TimeoutException:
+            print("Private Bus not found within the timeout period.")
+
+       
     # -- Below code is one time data fetch filter Parameter
     # qry="truncate table dept_time RESTART IDENTITY"
     # cursor.execute(qry)
